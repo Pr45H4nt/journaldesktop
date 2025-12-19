@@ -1,0 +1,56 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<div class="app-container">
+    <nav class="sidebar">
+        <div class="app-title">
+            <h1>📔 Journal</h1>
+        </div>
+
+        <div class="nav-menu">
+            <a href="/" class="nav-item @GetActiveClass("/")">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="/entry/new" class="nav-item @GetActiveClass("/entry")">
+                <span class="nav-icon">✍️</span>
+                <span class="nav-label">New Entry</span>
+            </a>
+            <a href="/entries" class="nav-item @GetActiveClass("/entries")">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">All Entries</span>
+            </a>
+            <a href="/calendar" class="nav-item @GetActiveClass("/calendar")">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Calendar</span>
+            </a>
+            <a href="/analytics" class="nav-item @GetActiveClass("/analytics")">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Analytics</span>
+            </a>
+            <a href="/settings" class="nav-item @GetActiveClass("/settings")">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        @Body
+    </main>
+</div>
+
+@code {
+    private string GetActiveClass(string path)
+    {
+        var currentPath = new Uri(Navigation.Uri).AbsolutePath;
+
+        if (path == "/" && currentPath == "/")
+            return "active";
+
+        if (path != "/" && currentPath.StartsWith(path))
+            return "active";
+
+        return "";
+    }
+}

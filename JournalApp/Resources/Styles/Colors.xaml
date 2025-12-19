@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Primary">#6366f1</Color>
+    <Color x:Key="Secondary">#64748b</Color>
+    <Color x:Key="Tertiary">#f8fafc</Color>
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="Gray100">#f8fafc</Color>
+    <Color x:Key="Gray200">#e2e8f0</Color>
+    <Color x:Key="Gray300">#cbd5e1</Color>
+    <Color x:Key="Gray400">#94a3b8</Color>
+    <Color x:Key="Gray500">#64748b</Color>
+    <Color x:Key="Gray600">#475569</Color>
+    <Color x:Key="Gray900">#1e293b</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+
+    <Color x:Key="PageBackgroundColor">{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}</Color>
+    <Color x:Key="PrimaryTextColor">{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}</Color>
+
+</ResourceDictionary>

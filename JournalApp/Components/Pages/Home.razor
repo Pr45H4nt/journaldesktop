@@ -1,0 +1,113 @@
+@page "/"
+@using JournalApp.Services
+@using JournalApp.Models
+@inject JournalService JournalService
+@inject StreakService StreakService
+@inject NavigationManager Navigation
+
+<div class="home-container">
+    <div class="header">
+        <h1>Welcome to Your Journal</h1>
+        <p class="date">@DateTime.Today.ToString("dddd, MMMM dd, yyyy")</p>
+    </div>
+
+    @if (todayEntry != null)
+    {
+        <div class="today-entry">
+            <h2>Today's Entry</h2>
+            <div class="entry-preview">
+                <div class="mood-display">
+                    @GetMoodIcon(todayEntry.PrimaryMood) @todayEntry.PrimaryMood
+                </div>
+                @if (!string.IsNullOrEmpty(todayEntry.Title))
+                {
+                    <h3>@todayEntry.Title</h3>
+                }
+                <p class="content-preview">@GetPreview(todayEntry.Content)</p>
+                <button class="btn-primary" @onclick="EditTodayEntry">Edit Entry</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="no-entry">
+            <h2>No entry for today</h2>
+            <p>Start writing your thoughts and feelings</p>
+            <button class="btn-primary" @onclick="CreateTodayEntry">Create Today's Entry</button>
+        </div>
+    }
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">@currentStreak</div>
+            <div class="stat-label">Current Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@longestStreak</div>
+            <div class="stat-label">Longest Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@totalEntries</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <button class="action-btn" @onclick="() => Navigation.NavigateTo(\"/entries\")">
+            📖 View All Entries
+        </button>
+        <button class="action-btn" @onclick="() => Navigation.NavigateTo(\"/calendar\")">
+            📅 Calendar View
+        </button>
+        <button class="action-btn" @onclick="() => Navigation.NavigateTo(\"/analytics\")">
+            📊 Analytics
+        </button>
+    </div>
+</div>
+
+@code {
+    private JournalEntry? todayEntry;
+    private int currentStreak;
+    private int longestStreak;
+    private int totalEntries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        todayEntry = await JournalService.GetEntryByDateAsync(DateTime.Today);
+        totalEntries = await JournalService.GetTotalEntriesCountAsync();
+
+        var streaks = await StreakService.CalculateStreaksAsync();
+        currentStreak = streaks.currentStreak;
+        longestStreak = streaks.longestStreak;
+    }
+
+    private void CreateTodayEntry()
+    {
+        Navigation.NavigateTo("/entry/new");
+    }
+
+    private void EditTodayEntry()
+    {
+        Navigation.NavigateTo($"/entry/{todayEntry!.Id}");
+    }
+
+    private string GetPreview(string content)
+    {
+        const int maxLength = 150;
+        if (content.Length <= maxLength)
+            return content;
+
+        return content.Substring(0, maxLength) + "...";
+    }
+
+    private string GetMoodIcon(string moodName)
+    {
+        var mood = Mood.AllMoods.FirstOrDefault(m => m.Name == moodName);
+        return mood?.Icon ?? "😊";
+    }
+}

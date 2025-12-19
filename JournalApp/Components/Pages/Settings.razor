@@ -1,0 +1,275 @@
+@page "/settings"
+@using JournalApp.Services
+@using JournalApp.Models
+@inject SecurityService SecurityService
+@inject ThemeService ThemeService
+@inject ExportService ExportService
+@inject JournalService JournalService
+
+<div class="settings-container">
+    <div class="header">
+        <h1>Settings</h1>
+    </div>
+
+    <div class="settings-sections">
+        <div class="settings-section">
+            <h2>Security</h2>
+
+            @if (!isPasswordEnabled)
+            {
+                <div class="setting-item">
+                    <p>Password protection is currently disabled</p>
+                    <button class="btn-primary" @onclick="ShowSetPasswordDialog">Enable Password Protection</button>
+                </div>
+            }
+            else
+            {
+                <div class="setting-item">
+                    <p>Password protection is enabled</p>
+                    <button class="btn-secondary" @onclick="ShowChangePasswordDialog">Change Password</button>
+                    <button class="btn-danger" @onclick="RemovePassword">Remove Password</button>
+                </div>
+            }
+
+            @if (showPasswordDialog)
+            {
+                <div class="dialog-overlay">
+                    <div class="dialog">
+                        <h3>@passwordDialogTitle</h3>
+
+                        @if (passwordError != null)
+                        {
+                            <div class="error-message">@passwordError</div>
+                        }
+
+                        @if (isChangingPassword)
+                        {
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" @bind="currentPassword" class="form-control" />
+                            </div>
+                        }
+
+                        <div class="form-group">
+                            <label>@(isChangingPassword ? "New Password" : "Password")</label>
+                            <input type="password" @bind="newPassword" class="form-control" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" @bind="confirmPassword" class="form-control" />
+                        </div>
+
+                        <div class="dialog-actions">
+                            <button class="btn-primary" @onclick="SavePassword">Save</button>
+                            <button class="btn-secondary" @onclick="ClosePasswordDialog">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="settings-section">
+            <h2>Appearance</h2>
+            <div class="setting-item">
+                <label class="toggle-label">
+                    <input type="checkbox" @bind="isDarkMode" @onchange="ToggleTheme" />
+                    <span>Dark Mode</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Export Data</h2>
+            <div class="setting-item">
+                <p>Export your journal entries as PDF</p>
+
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" @bind="exportStartDate" class="form-control" />
+                </div>
+
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" @bind="exportEndDate" class="form-control" />
+                </div>
+
+                <button class="btn-primary" @onclick="ExportToPdf" disabled="@isExporting">
+                    @(isExporting ? "Exporting..." : "Export to PDF")
+                </button>
+
+                @if (exportMessage != null)
+                {
+                    <div class="@(exportSuccess ? "success-message" : "error-message")">
+                        @exportMessage
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>About</h2>
+            <div class="setting-item">
+                <p><strong>Journal App</strong></p>
+                <p>Version 1.0</p>
+                <p>A secure, feature-rich journaling application</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isPasswordEnabled;
+    private bool isDarkMode;
+    private bool showPasswordDialog;
+    private bool isChangingPassword;
+    private string passwordDialogTitle = "";
+    private string currentPassword = "";
+    private string newPassword = "";
+    private string confirmPassword = "";
+    private string? passwordError;
+
+    private DateTime exportStartDate = DateTime.Today.AddMonths(-1);
+    private DateTime exportEndDate = DateTime.Today;
+    private bool isExporting;
+    private string? exportMessage;
+    private bool exportSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isPasswordEnabled = await SecurityService.IsPasswordEnabledAsync();
+        isDarkMode = await ThemeService.GetIsDarkModeAsync();
+    }
+
+    private void ShowSetPasswordDialog()
+    {
+        passwordDialogTitle = "Set Password";
+        isChangingPassword = false;
+        showPasswordDialog = true;
+        ResetPasswordFields();
+    }
+
+    private void ShowChangePasswordDialog()
+    {
+        passwordDialogTitle = "Change Password";
+        isChangingPassword = true;
+        showPasswordDialog = true;
+        ResetPasswordFields();
+    }
+
+    private void ClosePasswordDialog()
+    {
+        showPasswordDialog = false;
+        ResetPasswordFields();
+    }
+
+    private void ResetPasswordFields()
+    {
+        currentPassword = "";
+        newPassword = "";
+        confirmPassword = "";
+        passwordError = null;
+    }
+
+    private async Task SavePassword()
+    {
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            passwordError = "Password cannot be empty";
+            return;
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            passwordError = "Passwords do not match";
+            return;
+        }
+
+        if (newPassword.Length < 4)
+        {
+            passwordError = "Password must be at least 4 characters";
+            return;
+        }
+
+        bool success;
+        if (isChangingPassword)
+        {
+            success = await SecurityService.ChangePasswordAsync(currentPassword, newPassword);
+            if (!success)
+            {
+                passwordError = "Current password is incorrect";
+                return;
+            }
+        }
+        else
+        {
+            success = await SecurityService.SetPasswordAsync(newPassword);
+        }
+
+        if (success)
+        {
+            isPasswordEnabled = true;
+            ClosePasswordDialog();
+        }
+        else
+        {
+            passwordError = "Failed to set password";
+        }
+    }
+
+    private async Task RemovePassword()
+    {
+        if (confirm("Are you sure you want to remove password protection?"))
+        {
+            await SecurityService.RemovePasswordAsync();
+            isPasswordEnabled = false;
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        await ThemeService.SetThemeAsync(isDarkMode);
+    }
+
+    private async Task ExportToPdf()
+    {
+        isExporting = true;
+        exportMessage = null;
+
+        try
+        {
+            var entries = await JournalService.GetEntriesByDateRangeAsync(exportStartDate, exportEndDate);
+
+            if (!entries.Any())
+            {
+                exportMessage = "No entries found in the selected date range";
+                exportSuccess = false;
+                return;
+            }
+
+            var pdfBytes = await ExportService.ExportToPdfAsync(entries, exportStartDate, exportEndDate);
+
+            var fileName = $"Journal_{exportStartDate:yyyy-MM-dd}_to_{exportEndDate:yyyy-MM-dd}.pdf";
+            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), fileName);
+
+            await File.WriteAllBytesAsync(filePath, pdfBytes);
+
+            exportMessage = $"Successfully exported to {filePath}";
+            exportSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            exportMessage = $"Export failed: {ex.Message}";
+            exportSuccess = false;
+        }
+        finally
+        {
+            isExporting = false;
+        }
+    }
+
+    private bool confirm(string message)
+    {
+        return true;
+    }
+}

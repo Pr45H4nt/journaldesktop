@@ -1,0 +1,206 @@
+@page "/entries"
+@using JournalApp.Services
+@using JournalApp.Models
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<div class="entries-list-container">
+    <div class="header">
+        <h1>All Entries</h1>
+    </div>
+
+    <div class="search-filter-bar">
+        <input type="text" @bind="searchTerm" @bind:event="oninput"
+               class="form-control search-input"
+               placeholder="Search entries..." />
+        <button class="btn-primary" @onclick="SearchEntries">Search</button>
+        <button class="btn-secondary" @onclick="ShowFilters">Filters</button>
+    </div>
+
+    @if (showFilters)
+    {
+        <div class="filter-panel">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Start Date</label>
+                    <input type="date" @bind="filterStartDate" class="form-control" />
+                </div>
+                <div class="filter-group">
+                    <label>End Date</label>
+                    <input type="date" @bind="filterEndDate" class="form-control" />
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label>Moods</label>
+                <div class="mood-filters">
+                    @foreach (var mood in Mood.AllMoods)
+                    {
+                        <label class="checkbox-label">
+                            <input type="checkbox" @onchange="e => ToggleMoodFilter(mood.Name, e)" />
+                            @mood.Icon @mood.Name
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn-primary" @onclick="ApplyFilters">Apply Filters</button>
+                <button class="btn-secondary" @onclick="ClearFilters">Clear</button>
+            </div>
+        </div>
+    }
+
+    <div class="entries-grid">
+        @if (entries.Any())
+        {
+            @foreach (var entry in entries)
+            {
+                <div class="entry-card" @onclick="() => NavigateToEntry(entry.Id)">
+                    <div class="entry-date">@entry.Date.ToString("MMM dd, yyyy")</div>
+                    @if (!string.IsNullOrEmpty(entry.Title))
+                    {
+                        <h3>@entry.Title</h3>
+                    }
+                    <div class="entry-mood">
+                        @GetMoodIcon(entry.PrimaryMood) @entry.PrimaryMood
+                    </div>
+                    <p class="entry-preview">@GetPreview(entry.Content)</p>
+                    @if (entry.Tags.Any())
+                    {
+                        <div class="entry-tags">
+                            @foreach (var tag in entry.Tags.Take(3))
+                            {
+                                <span class="tag">@tag.Name</span>
+                            }
+                            @if (entry.Tags.Count > 3)
+                            {
+                                <span class="tag">+@(entry.Tags.Count - 3)</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (hasMore)
+            {
+                <div class="load-more">
+                    <button class="btn-secondary" @onclick="LoadMore">Load More</button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-entries">
+                <p>No entries found</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<JournalEntry> entries = new();
+    private string searchTerm = string.Empty;
+    private bool showFilters = false;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private HashSet<string> selectedMoods = new();
+    private int currentPage = 0;
+    private const int pageSize = 12;
+    private bool hasMore = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntries();
+    }
+
+    private async Task LoadEntries()
+    {
+        var newEntries = await JournalService.GetEntriesAsync(currentPage * pageSize, pageSize);
+        entries.AddRange(newEntries);
+        hasMore = newEntries.Count == pageSize;
+    }
+
+    private async Task LoadMore()
+    {
+        currentPage++;
+        await LoadEntries();
+    }
+
+    private async Task SearchEntries()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            await ReloadEntries();
+            return;
+        }
+
+        entries = await JournalService.SearchEntriesAsync(searchTerm);
+        hasMore = false;
+    }
+
+    private void ShowFilters()
+    {
+        showFilters = !showFilters;
+    }
+
+    private void ToggleMoodFilter(string moodName, ChangeEventArgs e)
+    {
+        if ((bool)e.Value!)
+        {
+            selectedMoods.Add(moodName);
+        }
+        else
+        {
+            selectedMoods.Remove(moodName);
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        var moodsList = selectedMoods.Any() ? selectedMoods.ToList() : null;
+        entries = await JournalService.FilterEntriesAsync(
+            filterStartDate,
+            filterEndDate,
+            moodsList,
+            null
+        );
+        hasMore = false;
+    }
+
+    private async Task ClearFilters()
+    {
+        filterStartDate = null;
+        filterEndDate = null;
+        selectedMoods.Clear();
+        await ReloadEntries();
+    }
+
+    private async Task ReloadEntries()
+    {
+        entries.Clear();
+        currentPage = 0;
+        hasMore = true;
+        await LoadEntries();
+    }
+
+    private void NavigateToEntry(int id)
+    {
+        Navigation.NavigateTo($"/entry/{id}");
+    }
+
+    private string GetPreview(string content)
+    {
+        const int maxLength = 100;
+        if (content.Length <= maxLength)
+            return content;
+
+        return content.Substring(0, maxLength) + "...";
+    }
+
+    private string GetMoodIcon(string moodName)
+    {
+        var mood = Mood.AllMoods.FirstOrDefault(m => m.Name == moodName);
+        return mood?.Icon ?? "😊";
+    }
+}

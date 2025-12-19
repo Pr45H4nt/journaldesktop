@@ -1,0 +1,157 @@
+@page "/calendar"
+@using JournalApp.Services
+@using JournalApp.Models
+@inject JournalService JournalService
+@inject NavigationManager Navigation
+
+<div class="calendar-container">
+    <div class="header">
+        <h1>Calendar View</h1>
+    </div>
+
+    <div class="calendar-controls">
+        <button class="btn-secondary" @onclick="PreviousMonth">← Previous</button>
+        <h2>@currentDate.ToString("MMMM yyyy")</h2>
+        <button class="btn-secondary" @onclick="NextMonth">Next →</button>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="calendar-header">
+            <div class="day-header">Sun</div>
+            <div class="day-header">Mon</div>
+            <div class="day-header">Tue</div>
+            <div class="day-header">Wed</div>
+            <div class="day-header">Thu</div>
+            <div class="day-header">Fri</div>
+            <div class="day-header">Sat</div>
+        </div>
+
+        <div class="calendar-body">
+            @for (int week = 0; week < 6; week++)
+            {
+                @for (int day = 0; day < 7; day++)
+                {
+                    var date = GetDateForCell(week, day);
+                    var hasEntry = calendarData.ContainsKey(date) && calendarData[date];
+                    var isCurrentMonth = date.Month == currentDate.Month;
+                    var isToday = date.Date == DateTime.Today;
+
+                    <div class="calendar-day @(isCurrentMonth ? "current-month" : "other-month") @(isToday ? "today" : "") @(hasEntry ? "has-entry" : "")"
+                         @onclick="() => OnDateClick(date)">
+                        <div class="day-number">@date.Day</div>
+                        @if (hasEntry)
+                        {
+                            <div class="entry-indicator">●</div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    @if (selectedEntry != null)
+    {
+        <div class="entry-preview-panel">
+            <div class="preview-header">
+                <h3>@selectedEntry.Date.ToString("MMMM dd, yyyy")</h3>
+                <button class="btn-close" @onclick="ClosePreview">×</button>
+            </div>
+            <div class="preview-content">
+                @if (!string.IsNullOrEmpty(selectedEntry.Title))
+                {
+                    <h4>@selectedEntry.Title</h4>
+                }
+                <div class="preview-mood">
+                    @GetMoodIcon(selectedEntry.PrimaryMood) @selectedEntry.PrimaryMood
+                </div>
+                <p>@GetPreview(selectedEntry.Content)</p>
+                <button class="btn-primary" @onclick="() => ViewFullEntry(selectedEntry.Id)">
+                    View Full Entry
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DateTime currentDate = DateTime.Today;
+    private Dictionary<DateTime, bool> calendarData = new();
+    private JournalEntry? selectedEntry;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCalendarData();
+    }
+
+    private async Task LoadCalendarData()
+    {
+        calendarData = await JournalService.GetEntriesCalendarDataAsync(
+            currentDate.Year,
+            currentDate.Month
+        );
+    }
+
+    private async Task PreviousMonth()
+    {
+        currentDate = currentDate.AddMonths(-1);
+        await LoadCalendarData();
+        selectedEntry = null;
+    }
+
+    private async Task NextMonth()
+    {
+        currentDate = currentDate.AddMonths(1);
+        await LoadCalendarData();
+        selectedEntry = null;
+    }
+
+    private DateTime GetDateForCell(int week, int day)
+    {
+        var firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+        var firstDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        var daysFromStart = week * 7 + day - firstDayOfWeek;
+
+        return firstDayOfMonth.AddDays(daysFromStart);
+    }
+
+    private async Task OnDateClick(DateTime date)
+    {
+        if (calendarData.ContainsKey(date) && calendarData[date])
+        {
+            selectedEntry = await JournalService.GetEntryByDateAsync(date);
+        }
+        else
+        {
+            selectedEntry = null;
+            if (date <= DateTime.Today)
+            {
+                Navigation.NavigateTo("/entry/new");
+            }
+        }
+    }
+
+    private void ClosePreview()
+    {
+        selectedEntry = null;
+    }
+
+    private void ViewFullEntry(int id)
+    {
+        Navigation.NavigateTo($"/entry/{id}");
+    }
+
+    private string GetPreview(string content)
+    {
+        const int maxLength = 150;
+        if (content.Length <= maxLength)
+            return content;
+
+        return content.Substring(0, maxLength) + "...";
+    }
+
+    private string GetMoodIcon(string moodName)
+    {
+        var mood = Mood.AllMoods.FirstOrDefault(m => m.Name == moodName);
+        return mood?.Icon ?? "😊";
+    }
+}
