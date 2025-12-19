@@ -1,5 +1,6 @@
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using QuestPDF.Helpers;
 using JournalApp.Models;
 using Markdig;
 using PdfColors = QuestPDF.Helpers.Colors;
