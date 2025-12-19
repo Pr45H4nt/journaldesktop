@@ -22,7 +22,7 @@
     <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
     <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
 
-    <Color x:Key="PageBackgroundColor">{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}</Color>
-    <Color x:Key="PrimaryTextColor">{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource White}}</Color>
+    <Color x:Key="PageBackgroundColor">#f8fafc</Color>
+    <Color x:Key="PrimaryTextColor">#1e293b</Color>
 
 </ResourceDictionary>
