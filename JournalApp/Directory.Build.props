@@ -1,17 +1,25 @@
 <Project>
   <PropertyGroup>
-    <!-- Disable PRI resource generation for .NET 9.0 compatibility -->
+    <!-- Completely disable all PRI/MRT resource indexing for .NET 9.0 compatibility -->
     <UseMrtResourceIndexing>false</UseMrtResourceIndexing>
     <EnableMrtResourceIndexing>false</EnableMrtResourceIndexing>
     <EnableDefaultPriIndexFileItems>false</EnableDefaultPriIndexFileItems>
     <AppxGeneratePrisForPortableLibrariesEnabled>false</AppxGeneratePrisForPortableLibrariesEnabled>
     <GeneratePrisForPortableLibraries>false</GeneratePrisForPortableLibraries>
+
+    <!-- Disable all Windows App SDK PRI features -->
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <WindowsAppSDKBootstrapInitialize>false</WindowsAppSDKBootstrapInitialize>
+    <IncludePackageReferencesDuringMarkupCompilation>false</IncludePackageReferencesDuringMarkupCompilation>
   </PropertyGroup>
 
-  <!-- Override all problematic PRI generation targets -->
+  <!-- Override all problematic PRI generation targets with empty implementations -->
   <Target Name="ExpandPriContent" />
   <Target Name="_GeneratePriConfigXml" />
   <Target Name="_SetMrtParameters" />
   <Target Name="_GenerateProjectPriFile" />
   <Target Name="_MergePriFiles" />
+  <Target Name="_CreateMergedPriFile" />
+  <Target Name="_ResolvePriIndexName" />
 </Project>

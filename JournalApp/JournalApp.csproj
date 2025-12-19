@@ -31,6 +31,10 @@
         <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
         <AppxPackage>false</AppxPackage>
         <GenerateTemporaryStoreCertificate>false</GenerateTemporaryStoreCertificate>
+
+        <!-- Disable Windows App SDK bootstrapper -->
+        <WindowsAppSDKBootstrapInitialize>false</WindowsAppSDKBootstrapInitialize>
+        <DisableWindowsAppSDKRedistAutoInclude>true</DisableWindowsAppSDKRedistAutoInclude>
     </PropertyGroup>
 
     <ItemGroup>
