@@ -1,7 +1,12 @@
 <Project>
   <PropertyGroup>
-    <!-- Disable PRI resource generation -->
+    <!-- Disable PRI resource generation for .NET 9.0 compatibility -->
     <UseMrtResourceIndexing>false</UseMrtResourceIndexing>
     <EnableMrtResourceIndexing>false</EnableMrtResourceIndexing>
+    <EnableDefaultPriIndexFileItems>false</EnableDefaultPriIndexFileItems>
+    <AppxGeneratePrisForPortableLibrariesEnabled>false</AppxGeneratePrisForPortableLibrariesEnabled>
   </PropertyGroup>
+
+  <!-- Remove the problematic PRI generation target -->
+  <Target Name="ExpandPriContent" />
 </Project>
