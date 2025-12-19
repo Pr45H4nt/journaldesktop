@@ -5,8 +5,13 @@
     <EnableMrtResourceIndexing>false</EnableMrtResourceIndexing>
     <EnableDefaultPriIndexFileItems>false</EnableDefaultPriIndexFileItems>
     <AppxGeneratePrisForPortableLibrariesEnabled>false</AppxGeneratePrisForPortableLibrariesEnabled>
+    <GeneratePrisForPortableLibraries>false</GeneratePrisForPortableLibraries>
   </PropertyGroup>
 
-  <!-- Remove the problematic PRI generation target -->
+  <!-- Override all problematic PRI generation targets -->
   <Target Name="ExpandPriContent" />
+  <Target Name="_GeneratePriConfigXml" />
+  <Target Name="_SetMrtParameters" />
+  <Target Name="_GenerateProjectPriFile" />
+  <Target Name="_MergePriFiles" />
 </Project>
