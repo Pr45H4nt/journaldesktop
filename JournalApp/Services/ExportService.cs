@@ -51,7 +51,7 @@ public class ExportService
         return await Task.Run(() => document.GeneratePdf());
     }
 
-    private void RenderEntry(IContainer container, JournalEntry entry)
+    private void RenderEntry(QuestPDF.Infrastructure.IContainer container, JournalEntry entry)
     {
         container.Border(1).BorderColor(Colors.Grey.Lighten2).Padding(10).Column(col =>
         {

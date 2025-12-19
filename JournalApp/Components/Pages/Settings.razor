@@ -73,7 +73,7 @@
             <h2>Appearance</h2>
             <div class="setting-item">
                 <label class="toggle-label">
-                    <input type="checkbox" @bind="isDarkMode" @onchange="ToggleTheme" />
+                    <input type="checkbox" @bind="isDarkMode" @bind:after="ToggleTheme" />
                     <span>Dark Mode</span>
                 </label>
             </div>
