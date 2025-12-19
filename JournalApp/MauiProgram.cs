@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using JournalApp.Data;
 using JournalApp.Services;
+using QuestPDF.Infrastructure;
 
 namespace JournalApp;
 
@@ -9,6 +10,9 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        // Set QuestPDF license early
+        QuestPDF.Settings.License = LicenseType.Community;
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>();
@@ -35,10 +39,17 @@ public static class MauiProgram
 
         var app = builder.Build();
 
-        using (var scope = app.Services.CreateScope())
+        try
         {
-            var db = scope.ServiceProvider.GetRequiredService<JournalDbContext>();
-            db.Database.EnsureCreated();
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<JournalDbContext>();
+                db.Database.EnsureCreated();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Database initialization error: {ex.Message}");
         }
 
         return app;
