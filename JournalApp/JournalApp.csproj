@@ -69,11 +69,13 @@
         <PackageReference Include="QuestPDF" Version="2024.12.3" />
         <PackageReference Include="Markdig" Version="0.38.0" />
 
-        <!-- Explicitly reference Windows App SDK but exclude all build targets -->
+        <!-- Explicitly reference Windows App SDK but exclude problematic build targets -->
         <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240802000">
-            <ExcludeAssets>build;buildTransitive;contentFiles</ExcludeAssets>
-            <IncludeAssets>runtime;native;compile</IncludeAssets>
+            <ExcludeAssets>buildTransitive</ExcludeAssets>
         </PackageReference>
+
+        <!-- Include Windows App SDK runtime components -->
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.3233" />
     </ItemGroup>
 
 </Project>
