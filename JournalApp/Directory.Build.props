@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Disable PRI resource generation -->
+    <UseMrtResourceIndexing>false</UseMrtResourceIndexing>
+    <EnableMrtResourceIndexing>false</EnableMrtResourceIndexing>
+  </PropertyGroup>
+</Project>
