@@ -28,6 +28,9 @@
         <WindowsPackageType>None</WindowsPackageType>
         <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
         <EnableMsixTooling>false</EnableMsixTooling>
+        <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+        <AppxPackage>false</AppxPackage>
+        <GenerateTemporaryStoreCertificate>false</GenerateTemporaryStoreCertificate>
     </PropertyGroup>
 
     <ItemGroup>
