@@ -26,7 +26,6 @@
 
         <!-- Windows packaging configuration -->
         <WindowsPackageType>None</WindowsPackageType>
-        <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     </PropertyGroup>
 
     <ItemGroup>
